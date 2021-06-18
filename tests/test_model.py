@@ -1,18 +1,10 @@
 import unittest
-from main import Model
+from model import Model
 
 
 class TestBoardLogic(unittest.TestCase):
     def setUp(self):
         self.model = Model()
-
-        self.model.place_token("yellow", 0)
-        self.model.place_token("yellow", 0)
-        self.model.place_token("yellow", 0)
-
-        self.model.place_token("red", 1)
-        self.model.place_token("red", 1)
-        self.model.place_token("red", 1)
         return
 
     def test_place_token(self):
@@ -25,13 +17,45 @@ class TestBoardLogic(unittest.TestCase):
             self.assertFalse(self.model.place_token("red", column))
         return
 
-    def test_is_win(self):
+    def test_col_is_full(self):
+        for _ in range(self.model.nrows - 1):
+            self.model.place_token("yellow", 0)
+            self.model.place_token("yellow", 1)
+
+        self.assertFalse(self.model.col_is_full(0))
+        self.assertFalse(self.model.col_is_full(0))
 
         self.model.place_token("yellow", 0)
-        self.assertTrue(self.model.is_win("yellow", 0))
-
         self.model.place_token("yellow", 1)
-        self.assertFalse(self.model.is_win("yellow", 1))
+        self.assertTrue(self.model.col_is_full(0))
+        self.assertTrue(self.model.col_is_full(1))
+
+    def test_board_is_full(self):
+        for _ in range(self.model.nrows):
+            for col in range(self.model.ncols - 1):
+                self.model.place_token("yellow", col)
+
+        self.assertFalse(self.model.board_is_full())
+
+        for _ in range(self.model.nrows):
+            self.model.place_token("yellow", self.model.ncols - 1)
+
+        self.assertTrue(self.model.board_is_full())
+
+    def test_is_win(self):
+        # self.model.place_token("yellow", 0)
+        # self.model.place_token("yellow", 0)
+        # self.model.place_token("yellow", 0)
+
+        # self.model.place_token("red", 1)
+        # self.model.place_token("red", 1)
+        # self.model.place_token("red", 1)
+
+        # self.model.place_token("yellow", 0)
+        # self.assertTrue(self.model.is_win("yellow", 0))
+
+        # self.model.place_token("yellow", 1)
+        # self.assertFalse(self.model.is_win("yellow", 1))
 
         # Checking horizontal win detection
         self.setUp()
@@ -40,6 +64,10 @@ class TestBoardLogic(unittest.TestCase):
         self.model.place_token("yellow", 3)
         self.assertFalse(self.model.is_win("yellow", 3))
         self.model.place_token("yellow", 4)
+
+        self.assertTrue(self.model.is_win("yellow", 1))
+        self.assertTrue(self.model.is_win("yellow", 2))
+        self.assertTrue(self.model.is_win("yellow", 3))
         self.assertTrue(self.model.is_win("yellow", 4))
 
         return
