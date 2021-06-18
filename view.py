@@ -17,7 +17,7 @@ def load_assets(items):
         if items.endswith(".png") or items.endswith(".jpg"):
             return pygame.image.load(items)  # Loading in image
         elif items.endswith(".mp3") or items.endswith(".wav"):
-            pygame.mixer.Sound(items)  # Loading in
+            return pygame.mixer.Sound(items)  # Loading in
         else:
             raise Exception("Unexpected file extension passed to View._load_asset.")
     else:
@@ -28,6 +28,7 @@ def load_assets(items):
 class View:
     """A class that represents the game window and assets"""
 
+    default_font = pygame.font.get_default_font()
     ASSET_FOLDER = "assets"
     asset_locations = {  # Specifying the location of assets in the ASSET_FOLDER
         "board": os.path.join(ASSET_FOLDER, "connect4.png"),
@@ -53,8 +54,30 @@ class View:
         pygame.mixer.init()
 
         self.assets = load_assets(self.asset_locations)
+        self.assets["font"] = pygame.font.Font("freesansbold.ttf", 64)
 
         self.screen = pygame.display.set_mode((width, height))
+
+    def render_outcome(self, win):
+        # Determining the end text
+        if win is None:
+            text_prerender = "It's a tie!"
+        elif win in ["red", "yellow"]:
+            text_prerender = f"{win.capitalize()} wins!"
+
+        # Rendering and placing text
+        text = self.assets["font"].render(text_prerender, True, (0, 0, 0))
+        dimensions = self.assets["font"].size(
+            text_prerender
+        )  # Getting the dimensions of the text
+        self.screen.blit(
+            text, (self.width / 2 - dimensions[0], self.height / 2 - dimensions[1])
+        )
+        return
+
+    def play_click(self):
+        self.assets["dropclick"].play()
+        return
 
     def render_token(self, token_color, row, col):
         x = self.col_positions[col]
@@ -82,10 +105,6 @@ class View:
         self.screen.blit(self.assets["board"], (0, 0))
         pygame.display.update()
         return
-
-    def loop(self):
-        while True:
-            self.render_board()
 
 
 if __name__ == "__main__":

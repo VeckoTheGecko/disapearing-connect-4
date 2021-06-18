@@ -11,7 +11,29 @@ class Model:
         # and everything else can be grey
         self.last_two = [None, None]
 
-    def set_position(self, token, row, col):
+        self.player_position = int((self.ncols + 1) / 2)
+
+    # Functions for moving around
+    def get_position(self):
+        return self.player_position
+
+    def set_position(self, pos):
+        """Sets the location of the token the player is about to place."""
+        if 0 <= pos <= self.ncols - 1:
+            self.player_position = pos
+            return True
+        return False
+
+    def move_right(self):
+        self.set_position(self.get_position() + 1)
+        return
+
+    def move_left(self):
+        self.set_position(self.get_position() - 1)
+        return
+
+    # Functions for manipulating the board
+    def set_token(self, token, row, col):
         # Places a token in the specified spot
         self.board[row][col] = token
         return
@@ -29,7 +51,7 @@ class Model:
             return False
 
         else:
-            self.set_position(token, row, col)
+            self.set_token(token, row, col)
             self.record_history(row, col)
             return True
 
