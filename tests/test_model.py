@@ -17,6 +17,27 @@ class TestBoardLogic(unittest.TestCase):
             self.assertFalse(self.model.place_token("red", column))
         return
 
+    def test_get_empty(self):
+        nrows = self.model.nrows
+
+        for row_count in range(self.model.nrows):
+            self.assertTrue(self.model.get_empty(0) == (nrows - 1) - row_count)
+            self.model.place_token("yellow", 0)
+
+        self.assertTrue(self.model.get_empty(0) is None)
+
+        return
+
+    def test_get_top_token(self):
+        nrows = self.model.nrows
+        self.assertTrue(self.model.get_top_token(0) is None)
+
+        for row_count in range(self.model.nrows):
+            self.model.place_token("yellow", 0)
+            self.assertTrue(self.model.get_top_token(0) == (nrows - 1) - row_count)
+
+        return
+
     def test_col_is_full(self):
         for _ in range(self.model.nrows - 1):
             self.model.place_token("yellow", 0)

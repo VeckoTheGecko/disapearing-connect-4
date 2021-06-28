@@ -15,6 +15,7 @@ class Model:
 
     # Functions for moving around
     def get_position(self):
+        """Gets the position of the players cursor"""
         return self.player_position
 
     def set_position(self, pos):
@@ -24,33 +25,36 @@ class Model:
             return True
         return False
 
-    def move_right(self):
-        self.set_position(self.get_position() + 1)
+    def move_left(self):
+        """Moves the players cursor to the left."""
+        self.set_position(self.get_position() - 1)
         return
 
-    def move_left(self):
-        self.set_position(self.get_position() - 1)
+    def move_right(self):
+        """Moves the players cursor to the right."""
+        self.set_position(self.get_position() + 1)
         return
 
     # Functions for manipulating the board
     def set_token(self, token, row, col):
-        # Places a token in the specified spot
+        """Places a token at the specified board coordinates"""
         self.board[row][col] = token
         return
 
     def record_history(self, row, col):
+        """Records the last two positions that have been played"""
         self.last_two.pop(0)
         self.last_two.append((row, col))
         return
 
     def place_token(self, token: str, col: int) -> bool:
-        col_is_full, row = self.col_is_full(col, get_row=True)
-
-        if col_is_full:
+        """Places a token in the specified column"""
+        if self.col_is_full(col):
             # Can't place token
             return False
 
         else:
+            row = self.get_empty(col)
             self.set_token(token, row, col)
             self.record_history(row, col)
             return True
@@ -61,8 +65,12 @@ class Model:
         It traces back along each direction, then counts number of tokens placed by current player"
         """
         # Finding row of last placed token
-        _, row = self.col_is_full(col=col, get_row=True)
-        row += 1  # Row was the row of the empty spot, now its the full spot
+        row = self.get_top_token(col=col)
+
+        if row is None:  # column must have a token
+            raise Exception(
+                "is_win expected a token in the column but no token was found"
+            )
 
         # The possible directions connect 4 can occur
         step_directions = {
@@ -116,23 +124,33 @@ class Model:
         # End of loop with no win
         return False
 
-    def col_is_full(self, col: int, get_row: bool = False):
-        """Checking from bottom to top of a column
-        if there is a space for the token"""
-        full_column = True
-        for row in range(self.nrows - 1, -1, -1):
-            if self.board[row][col] == "":
-                full_column = False
+    def get_empty(self, col: int) -> int:
+        """Returns the row of the empty spot. None if there is no empty spot"""
+        row = None
+        for test_row in range(self.nrows - 1, -1, -1):
+            if self.board[test_row][col] == "":
+                row = test_row
                 break
+        return row
 
-        # If the column is full, then the row is meaningless
-        if full_column:
-            row = None
+    def get_top_token(self, col: int) -> int:
+        """Returns the row of the topmost token in a column."""
+        empty_row = self.get_empty(col)
 
-        if get_row:
-            return (full_column, row)
+        if empty_row == (self.nrows - 1):  # ie. the whole column is empty
+            return None
+        if empty_row is None:  # ie. the whole row is full
+            return 0
+        if empty_row is not None:  # ie. token is one row below the empty spot
+            return empty_row + 1
+
+    def col_is_full(self, col: int):
+        """Checking if there is a space for the token"""
+
+        if self.get_empty(col) is None:
+            return True
         else:
-            return full_column
+            return False
 
     def board_is_full(self):
         """

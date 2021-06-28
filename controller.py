@@ -1,6 +1,7 @@
 from model import Model
 from view import View
 import pygame
+import sys
 
 
 class Controller:
@@ -31,47 +32,65 @@ class Controller:
         return
 
     def game_loop(self):
-        running = True
         in_game = True
-        while running:
-            turn = "red"
-            while in_game:
-                events = pygame.event.get()
-                current_pos = self.model.get_position()
-                # Processing events
-                for event in events:
-                    if event.type == pygame.KEYDOWN:
-                        if event.key in self.actions["place"]:
-                            if self.model.place_token(
-                                token=turn, col=current_pos
-                            ):  # if its successful
-                                self.view.play_click()
-                                # Switching turns
-                                if turn == "yellow":
-                                    turn = "red"
-                                else:
-                                    turn = "yellow"
+        turn = "red"
+        while True:  # Game is exit using a return statement inside
+            placing_token = False
 
-                        elif event.key in self.actions["move_left"]:
-                            self.model.move_left()
+            events = pygame.event.get()
+            current_pos = self.model.get_position()
+            # Processing events
+            for event in events:
+                if event.type == pygame.KEYDOWN:
+                    if event.key in self.actions["place"]:
+                        if self.model.place_token(
+                            token=turn, col=current_pos
+                        ):  # if its successful
+                            placing_token = True
 
-                        elif event.key in self.actions["move_right"]:
-                            self.model.move_right()
+                    elif event.key in self.actions["move_left"]:
+                        self.model.move_left()
 
-                        elif event.key in self.actions["move_number"]:
-                            key_pressed = self.actions["move_number"].index(event.key)
-                            self.model.set_position(key_pressed)
+                    elif event.key in self.actions["move_right"]:
+                        self.model.move_right()
 
-                        elif event.key in self.actions["reset"]:
-                            self.reset_board()
+                    elif event.key in self.actions["move_number"]:
+                        key_pressed = self.actions["move_number"].index(event.key)
+                        self.model.set_position(key_pressed)
 
+                    elif event.key in self.actions["reset"]:
+                        self.reset_board()
+                        in_game = True
+                        turn = "red"
+
+                elif event.type == pygame.QUIT:
+                    # Exits out the game when the x is pressed.
+                    pygame.exit()
+                    sys.exit()
+
+            if in_game:
                 self.view.render_board(self.model.board)
 
-                if self.model.is_win(turn_color=turn, col=self.model.get_position()):
-                    self.view.render_outcome(win=turn)
+                if placing_token:
+                    self.view.play_click()
 
-                if self.model.board_is_full():
-                    self.view.render_outcome(win=None)
+                    # checking that the game is still running
+                    if self.model.is_win(
+                        turn_color=turn, col=self.model.get_position()
+                    ):
+                        self.view.render_outcome(win=turn)
+                        in_game = False
+
+                    if self.model.board_is_full():
+                        self.view.render_outcome(win=None)
+                        in_game = False
+                    # Updating display
+                    pygame.display.update()
+                    # Switching turns
+                    if turn == "yellow":
+                        turn = "red"
+                    else:
+                        turn = "yellow"
 
 
 if __name__ == "__main__":

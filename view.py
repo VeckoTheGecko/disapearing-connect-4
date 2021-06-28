@@ -59,6 +59,9 @@ class View:
         self.screen = pygame.display.set_mode((width, height))
 
     def render_outcome(self, win):
+        """
+        Renders winning text once the game is finished.
+        """
         # Determining the end text
         if win is None:
             text_prerender = "It's a tie!"
@@ -76,6 +79,9 @@ class View:
         return
 
     def play_click(self):
+        """
+        Plays the click sound of the token landing.
+        """
         self.assets["dropclick"].play()
         return
 
@@ -93,6 +99,9 @@ class View:
             return
 
     def render_board(self, board):
+        """
+        Renders the board onto the screen
+        """
         self.screen.fill((255, 255, 255))
 
         # Rendering all tokens
@@ -103,7 +112,6 @@ class View:
 
         # Rendering frame
         self.screen.blit(self.assets["board"], (0, 0))
-        pygame.display.update()
         return
 
 
