@@ -74,7 +74,7 @@ class View:
             text_prerender
         )  # Getting the dimensions of the text
         self.screen.blit(
-            text, (self.width / 2 - dimensions[0], self.height / 2 - dimensions[1])
+            text, ((self.width - dimensions[0]) / 2, (self.height - dimensions[1]) / 2)
         )
         return
 
