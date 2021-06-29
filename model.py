@@ -11,7 +11,7 @@ class Model:
         # and everything else can be grey
         self.last_two = [None, None]
 
-        self.player_position = int((self.ncols + 1) / 2)
+        self.player_position = int(self.ncols / 2)
 
     # Functions for moving around
     def get_position(self):

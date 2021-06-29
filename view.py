@@ -1,4 +1,5 @@
 import os
+from typing_extensions import final
 import pygame
 
 # Helper function
@@ -42,13 +43,20 @@ class View:
 
     # Storing the positions of the rows/cols relative to the original connect 4 board size
     # Going from the top left corner
-    col_positions = [24.5, 133, 240.5, 348, 456.5, 563.5, 671.5]
-    row_positions = [40, 153, 264, 377, 486.5, 600]
+    root_positions = {
+        "col_positions": [24.5, 133, 240.5, 348, 456.5, 563.5, 671.5],
+        "row_positions": [40, 153, 264, 377, 486.5, 600],
+        "board_size": (800, 700),
+        "token_height": 50,
+        "header": 100,
+        "gutter": 80,
+    }
 
     def __init__(self, width: int = 800, height: int = 700):
 
         self.width = width
         self.height = height
+        self.calculate_transformed_positions()
         pygame.init()
         pygame.display.init()
         pygame.mixer.init()
@@ -56,7 +64,68 @@ class View:
         self.assets = load_assets(self.asset_locations)
         self.assets["font"] = pygame.font.Font("freesansbold.ttf", 64)
 
-        self.screen = pygame.display.set_mode((width, height))
+        self.screen = pygame.display.set_mode(
+            (self.width, self.height), pygame.RESIZABLE
+        )
+
+    def update_screen_size(self, dimensions):
+        """Updates the screen size."""
+        self.width, self.height = dimensions
+        self.screen = pygame.display.set_mode(
+            (self.width, self.height), pygame.RESIZABLE
+        )
+        self.calculate_transformed_positions()  # Updating the coordinates
+
+    def calculate_transformed_positions(self):
+        """Constructing the unscaled positioning of all assets and then scaling them to fit the window
+        and be centred."""
+        gutter, header = self.root_positions["gutter"], self.root_positions["header"]
+        board_dimensions = (  # Dimensions of the current board
+            2 * gutter + self.root_positions["board_size"][0],
+            2 * gutter + header + self.root_positions["board_size"][1],
+        )
+
+        # Calculating the positions of the tokens etc. relative to the board
+        transformed_positions = {}
+        transformed_positions["col_positions"] = [
+            gutter + x for x in self.root_positions["col_positions"]
+        ]
+        transformed_positions["row_positions"] = [
+            gutter + header + y for y in self.root_positions["row_positions"]
+        ]
+
+        # Scaling and offseting the coordinates so that they are centred
+        final_width = min(self.width, self.height)
+        scaling_factor = final_width / board_dimensions[0]  # Aspect ratio is a square
+
+        # Calculates the offset required to centre the object
+        offset = (
+            (self.width - final_width) / 2,
+            (self.height - final_width) / 2,
+        )
+
+        transformed_positions["col_positions"] = [
+            offset[0] + x * scaling_factor
+            for x in transformed_positions["col_positions"]
+        ]
+
+        transformed_positions["row_positions"] = [
+            offset[1] + y * scaling_factor
+            for y in transformed_positions["row_positions"]
+        ]
+
+        transformed_positions["board_top_left"] = (
+            offset[0] + gutter * scaling_factor,
+            offset[1] + (gutter + header) * scaling_factor,
+        )
+
+        transformed_positions["token_height"] = (
+            offset[1] + (gutter + self.root_positions["token_height"]) * scaling_factor
+        )
+
+        transformed_positions["scale"] = scaling_factor
+        self.transformed_positions = transformed_positions
+        return
 
     def render_outcome(self, win):
         """
@@ -73,8 +142,15 @@ class View:
         dimensions = self.assets["font"].size(
             text_prerender
         )  # Getting the dimensions of the text
-        self.screen.blit(
-            text, ((self.width - dimensions[0]) / 2, (self.height - dimensions[1]) / 2)
+
+        final_width = min(self.width, self.height) * 2 / 3
+        scale = final_width / dimensions[0]
+        final_height = dimensions[1] * scale
+
+        self.render_with_scale(
+            text,
+            ((self.width - final_width) / 2, (self.height - final_height) / 2),
+            scale,
         )
         return
 
@@ -85,20 +161,27 @@ class View:
         self.assets["dropclick"].play()
         return
 
+    def render_with_scale(self, asset, pos, scale):
+        """Renders an asset at a position with a scale factor applied to width and height"""
+        # Calculating the transformed dimensions given the scale factor
+        final_dim = (int(asset.get_width() * scale), int(asset.get_height() * scale))
+        self.screen.blit(pygame.transform.scale(asset, final_dim), pos)
+
     def render_token(self, token_color, row, col):
-        x = self.col_positions[col]
-        y = self.row_positions[row]
+        x = self.transformed_positions["col_positions"][col]
+        y = self.transformed_positions["row_positions"][row]
 
         if token_color == "":
             return
-        elif token_color == "red":
-            self.screen.blit(self.assets["tokens"]["red"], (x, y))
-            return
-        elif token_color == "yellow":
-            self.screen.blit(self.assets["tokens"]["yellow"], (x, y))
+        else:
+            self.render_with_scale(
+                self.assets["tokens"][token_color],
+                (x, y),
+                self.transformed_positions["scale"],
+            )
             return
 
-    def render_board(self, board):
+    def render_board(self, board, disappearing_mode, in_game, last_two):
         """
         Renders the board onto the screen
         """
@@ -108,11 +191,30 @@ class View:
         for row in range(len(board)):
             for col in range(len(board[row])):
                 token_color = board[row][col]
+                if (disappearing_mode and in_game) and token_color != "":
+                    # changing the color if in disappearing mode (and game is going on)
+                    #  and slot is not empty
+                    if (row, col) not in last_two:
+                        token_color = "grey"
                 self.render_token(token_color, row, col)
 
         # Rendering frame
-        self.screen.blit(self.assets["board"], (0, 0))
+        self.render_with_scale(
+            self.assets["board"],
+            self.transformed_positions["board_top_left"],
+            self.transformed_positions["scale"],
+        )
         return
+
+    def render_placing_token(self, player_position, turn):
+        scale = self.transformed_positions["scale"]
+        token = self.assets["tokens"][turn]
+
+        # No need to adjust x
+        x = self.transformed_positions["col_positions"][player_position]
+        y = self.transformed_positions["token_height"] - token.get_height() * scale / 2
+
+        self.render_with_scale(token, (x, y), scale)
 
 
 if __name__ == "__main__":
