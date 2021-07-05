@@ -5,38 +5,8 @@ import sys
 
 
 class Controller:
-    def __init__(self, model=Model()):
-        self.model = model
-
-    def reset_board(self):
-        self.model = Model()
-        return
-
-
-class ControllerBot(Controller):
-    def make_a_move(self, turn):
-        pass
-
-    def game_loop(self):
-        turn = "red"
-
-        move = self.make_a_move(turn)
-        self.model.place_token(turn, move)
-        if self.model.is_win(turn_color=turn, col=self.model.get_position()):
-            return turn
-
-        if self.model.board_is_full():
-            return None
-
-        # Switching turns
-        if turn == "yellow":
-            turn = "red"
-        else:
-            turn = "yellow"
-
-
-class ControllerPygame(Controller):
     def __init__(self, model=Model(), view=View()):
+        self.model = model
         self.view = view
         self.actions = {
             "place": [pygame.K_DOWN, pygame.K_RETURN, pygame.K_KP_ENTER, pygame.K_s],
@@ -57,7 +27,10 @@ class ControllerPygame(Controller):
             "toggle_disappearing": [pygame.K_n],
             "reset": [pygame.K_r],
         }
-        super().__init__(model)
+
+    def reset_board(self):
+        self.model = Model()
+        return
 
     def game_loop(self):
         disappearing = True
@@ -140,5 +113,5 @@ class ControllerPygame(Controller):
 
 
 if __name__ == "__main__":
-    controller = ControllerPygame(model=Model(), view=View())
+    controller = Controller(model=Model(), view=View())
     controller.game_loop()
