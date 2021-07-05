@@ -158,13 +158,3 @@ class Model:
         """
         full_columns = [self.col_is_full(col) for col in range(self.ncols)]
         return all(full_columns)  # True if all columns are full
-
-
-# if __name__ == "__main__":
-#     model = Model()
-#     model.place_token("yellow", 1)
-#     model.place_token("yellow", 2)
-#     model.place_token("yellow", 3)
-#     model.place_token("yellow", 4)
-
-#     model.is_win("yellow", 3)

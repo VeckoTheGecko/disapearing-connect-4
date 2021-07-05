@@ -2,7 +2,7 @@ import os
 from typing_extensions import final
 import pygame
 
-# Helper function
+# Helper function for converting asset paths to pygame assets
 def load_assets(items):
     """A function to turn the asset_locations into a dictionary of pygame assets.
     Takes in a dictionary (or nested dictionaries) containing asset file locations, and returns a dictionary of the same structure with the pygame assets loaded.
@@ -23,7 +23,6 @@ def load_assets(items):
             raise Exception("Unexpected file extension passed to View._load_asset.")
     else:
         raise TypeError("Unexpected type in View._load_asset , must be str or dict.")
-    return
 
 
 class View:
@@ -67,6 +66,8 @@ class View:
         self.screen = pygame.display.set_mode(
             (self.width, self.height), pygame.RESIZABLE
         )
+        pygame.display.set_caption("Disappearing Connect 4")
+        pygame.display.set_icon(pygame.image.load("assets/four.png"))
 
     def update_screen_size(self, dimensions):
         """Updates the screen size."""
@@ -215,22 +216,3 @@ class View:
         y = self.transformed_positions["token_height"] - token.get_height() * scale / 2
 
         self.render_with_scale(token, (x, y), scale)
-
-
-if __name__ == "__main__":
-    from model import Model
-
-    v = View()
-    m = Model()
-
-    m.place_token("red", 0)
-    m.place_token("red", 1)
-    m.place_token("red", 2)
-    m.place_token("red", 3)
-    m.place_token("yellow", 0)
-    m.place_token("yellow", 1)
-    m.place_token("yellow", 2)
-    m.place_token("yellow", 3)
-
-    v.render_board(m.board)
-    input()
