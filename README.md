@@ -16,7 +16,7 @@ A multiplayer game of connect 4, with a twist! Each time somebody places a new t
 ## Running instructions
 ### Option 1 (Windows):
 The executable is available from this link. Just download, extract and run!
-
+https://drive.google.com/file/d/1l0W9Uf_HQrleNknFSUQqDH1yHpUmdjBQ/view?usp=sharing
 
 ### Option 2 (Python):
 This game only relies on the `pygame` module in Python. Download and install python, and install the pygame module (the version listed in `requirements.txt`).
