@@ -13,7 +13,6 @@ class Controller:
             "move_left": [pygame.K_LEFT, pygame.K_a],
             "move_right": [pygame.K_RIGHT, pygame.K_d],
             "move_number": [
-                pygame.K_0,
                 pygame.K_1,
                 pygame.K_2,
                 pygame.K_3,
@@ -21,8 +20,6 @@ class Controller:
                 pygame.K_5,
                 pygame.K_6,
                 pygame.K_7,
-                pygame.K_8,
-                pygame.K_9,
             ],
             "toggle_disappearing": [pygame.K_n],
             "reset": [pygame.K_r],
